@@ -17,7 +17,7 @@ const json = await client.get('/foobar');
 console.log(json);
 
 // JSON-RPC
-const json = await client.call('/', 'method', {});
+const json = await client.execute('/', 'method', {});
 
 ```
 
