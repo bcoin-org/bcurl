@@ -24,7 +24,7 @@
     "webpack": "webpack --config webpack.config.js"
   },
   "dependencies": {
-    "breq": "^0.0.1",
+    "brq": "^0.0.1",
     "bsock": "^0.0.1"
   },
   "devDependencies": {
