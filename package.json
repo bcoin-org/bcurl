@@ -24,7 +24,7 @@
     "webpack": "webpack --mode production --config webpack.config.js"
   },
   "dependencies": {
-    "brq": "~0.1.0",
+    "brq": "~0.1.1",
     "bsock": "~0.1.0"
   },
   "devDependencies": {
