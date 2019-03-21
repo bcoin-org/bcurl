@@ -1,6 +1,6 @@
 {
   "name": "bcurl",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Web client bike-shed",
   "keywords": [
     "http",
@@ -21,9 +21,9 @@
     "test": "bmocha --reporter spec test/*-test.js"
   },
   "dependencies": {
-    "brq": "~0.1.6",
-    "bsert": "~0.0.9",
-    "bsock": "~0.1.7"
+    "brq": "~0.1.7",
+    "bsert": "~0.0.10",
+    "bsock": "~0.1.8"
   },
   "devDependencies": {
     "bmocha": "^2.1.0"
