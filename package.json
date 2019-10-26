@@ -23,7 +23,7 @@
     "test-ci": "nyc -a -n 'lib/**/*.js' --reporter=lcov --reporter=text npm run test"
   },
   "dependencies": {
-    "brq": "~0.1.7",
+    "brq": "~0.1.8",
     "bsert": "~0.0.10",
     "bsock": "~0.1.8"
   },
