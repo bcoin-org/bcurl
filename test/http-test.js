@@ -137,6 +137,20 @@ describe('Client HTTP', function() {
     assert(seen);
   });
 
+  it('should send request', async () => {
+    client = new Client({port});
+
+    server = start([
+      seenDeepEqual(false),
+      reqDeepEqual('method', 'GET'),
+      reqDeepEqual('url', '/'),
+      end()
+    ]);
+
+    await client.request('GET', '/');
+    assert(seen);
+  });
+
   it('should send request with headers', async () => {
     client = new Client({
       port: port,
@@ -152,6 +166,77 @@ describe('Client HTTP', function() {
     ]);
 
     await client.get('/');
+    assert(seen);
+  });
+
+
+  it('should send json rpc', async () => {
+    client = new Client({port});
+
+    const body = {method: 'test', params: null, id: 1};
+
+    server = start([
+      seenDeepEqual(false),
+      parseBody(),
+      reqDeepEqual('body', JSON.stringify(body)),
+      end()
+    ]);
+
+    await client.execute('/', 'test');
+    assert(seen);
+  });
+
+  it('should increment the json rpc id', async () => {
+    client = new Client({port});
+
+    for (let i = 1; i < 5; i++) {
+      const body = {method: 'test', params: null, id: i};
+
+      server = start([
+        parseBody(),
+        reqDeepEqual('body', JSON.stringify(body)),
+        end()
+      ]);
+
+      await client.execute('/', 'test');
+      server.close();
+    }
+
+    assert(seen);
+  });
+
+  it('should send json rpc params', async () => {
+    client = new Client({port});
+
+    const body = {method: 'foo', params: [1,2], id: 1};
+
+    server = start([
+      seenDeepEqual(false),
+      parseBody(),
+      reqDeepEqual('body', JSON.stringify(body)),
+      end()
+    ]);
+
+    await client.execute('/', 'foo', [1,2]);
+    assert(seen);
+  });
+
+  it('should send username and password', async () => {
+    client = new Client({
+      port: port,
+      username: 'foo',
+      password: 'bar'
+    });
+
+    const auth = Buffer.from('foo:bar').toString('base64');
+
+    server = start([
+      seenDeepEqual(false),
+      reqHeaderDeepEqual('authorization', `Basic ${auth}`),
+      end()
+    ]);
+
+    await client.get('/')
     assert(seen);
   });
 
