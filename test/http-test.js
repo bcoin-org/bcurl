@@ -163,14 +163,13 @@ describe('Client HTTP', function() {
       seenDeepEqual(false),
       reqHeaderDeepEqual('user-agent', 'brq'),
       reqHeaderDeepEqual('foo', 'bar'),
-      reqHeaderDeepEqual('host', `localhost:${port}`),
+      reqHeaderDeepEqual('host', `127.0.0.1:${port}`),
       end()
     ]);
 
     await client.get('/');
     assert(seen);
   });
-
 
   it('should send json rpc', async () => {
     client = new Client({port});
@@ -238,7 +237,7 @@ describe('Client HTTP', function() {
       end()
     ]);
 
-    await client.get('/')
+    await client.get('/');
     assert(seen);
   });
 
