@@ -17,8 +17,7 @@
   "author": "Christopher Jeffrey <chjjeffrey@gmail.com>",
   "main": "./lib/bcurl.js",
   "scripts": {
-    "lint": "eslint lib/ test/ || exit 0",
-    "lint-ci": "eslint lib/ test/",
+    "lint": "eslint lib/ test/",
     "test": "bmocha --reporter spec test/*-test.js",
     "test-ci": "nyc -a -n 'lib/**/*.js' --reporter=lcov --reporter=text npm run test"
   },
