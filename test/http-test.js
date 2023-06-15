@@ -39,8 +39,15 @@ function start(fns) {
     seen = true;
   }
 
-  return http.createServer(handler)
-    .listen(port);
+  const server = http.createServer(handler);
+
+  return new Promise((resolve) => {
+    server.listen(port, () => {
+      setImmediate(() => {
+        resolve(server);
+      });
+    });
+  });
 }
 
 // Handlers
@@ -107,6 +114,18 @@ const parseBody = () => async (req, res) => {
   });
 };
 
+// Close server and wait for it to close.
+const close = (server) => {
+  return new Promise((resolve) => {
+    server.once('close', () => {
+      setImmediate(() => {
+        resolve();
+      });
+    });
+    server.close();
+  });
+};
+
 // End in an unsafe way.
 const unsafeEnd = () => (req, res) => {
   res.end();
@@ -129,7 +148,7 @@ describe('Client HTTP', function() {
   it('should use HTTP version 1.1', async () => {
     client = new Client({port});
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       reqDeepEqual('httpVersion', '1.1'),
       end()
@@ -142,7 +161,7 @@ describe('Client HTTP', function() {
   it('should send request', async () => {
     client = new Client({port});
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       reqDeepEqual('method', 'GET'),
       reqDeepEqual('url', '/'),
@@ -159,7 +178,7 @@ describe('Client HTTP', function() {
       headers: {foo: 'bar'}
     });
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       reqHeaderDeepEqual('user-agent', 'brq'),
       reqHeaderDeepEqual('foo', 'bar'),
@@ -176,7 +195,7 @@ describe('Client HTTP', function() {
 
     const body = {method: 'test', params: null, id: 1};
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       parseBody(),
       reqDeepEqual('body', JSON.stringify(body)),
@@ -193,14 +212,14 @@ describe('Client HTTP', function() {
     for (let i = 1; i < 5; i++) {
       const body = {method: 'test', params: null, id: i};
 
-      server = start([
+      server = await start([
         parseBody(),
         reqDeepEqual('body', JSON.stringify(body)),
         end()
       ]);
 
       await client.execute('/', 'test');
-      server.close();
+      await close(server);
     }
 
     assert(seen);
@@ -211,7 +230,7 @@ describe('Client HTTP', function() {
 
     const body = {method: 'foo', params: [1,2], id: 1};
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       parseBody(),
       reqDeepEqual('body', JSON.stringify(body)),
@@ -231,7 +250,7 @@ describe('Client HTTP', function() {
 
     const auth = Buffer.from('foo:bar').toString('base64');
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       reqHeaderDeepEqual('authorization', `Basic ${auth}`),
       end()
@@ -244,7 +263,7 @@ describe('Client HTTP', function() {
   it('should send GET request', async () => {
     client = new Client({port});
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       reqDeepEqual('method', 'GET'),
       reqDeepEqual('url', '/'),
@@ -258,7 +277,7 @@ describe('Client HTTP', function() {
   it('should send GET request with query params', async () => {
     client = new Client({port});
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       reqDeepEqual('method', 'GET'),
       reqDeepEqual('url', '/?query=param'),
@@ -272,7 +291,7 @@ describe('Client HTTP', function() {
   it('should send POST request', async () => {
     client = new Client({port});
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       reqDeepEqual('method', 'POST'),
       reqDeepEqual('url', '/'),
@@ -287,7 +306,7 @@ describe('Client HTTP', function() {
     client = new Client({port});
     const body = {a: 'body'};
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       reqDeepEqual('method', 'POST'),
       parseBody(),
@@ -302,7 +321,7 @@ describe('Client HTTP', function() {
   it('should send PUT request', async () => {
     client = new Client({port});
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       reqDeepEqual('method', 'PUT'),
       reqDeepEqual('url', '/'),
@@ -316,7 +335,7 @@ describe('Client HTTP', function() {
   it('should send DELETE request', async () => {
     client = new Client({port});
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       reqDeepEqual('method', 'DELETE'),
       reqDeepEqual('url', '/'),
@@ -330,7 +349,7 @@ describe('Client HTTP', function() {
   it('should send PATCH request', async () => {
     client = new Client({port});
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       reqDeepEqual('method', 'PATCH'),
       reqDeepEqual('url', '/'),
@@ -344,7 +363,7 @@ describe('Client HTTP', function() {
   it('should error on the wrong content-type', async () => {
     client = new Client({port});
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       unsafeEnd()
     ]);
@@ -368,7 +387,7 @@ describe('Client HTTP', function() {
       token: token
     });
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       reqDeepEqual('url', `/?token=${token}`),
       end()
@@ -385,7 +404,7 @@ describe('Client HTTP', function() {
       token: token
     });
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       parseBody(),
       reqDeepEqual('body', JSON.stringify({token})),
@@ -399,7 +418,7 @@ describe('Client HTTP', function() {
   it('should handle 401', async () => {
     client = new Client({port});
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       status(401),
       end()
@@ -422,7 +441,7 @@ describe('Client HTTP', function() {
 
     const input = {foo: 'bar'};
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       write(input, 'json'),
       unsafeEnd()
@@ -439,7 +458,7 @@ describe('Client HTTP', function() {
 
     const input = {error: 'foobar'};
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       write(input, 'json'),
       unsafeEnd()
@@ -462,7 +481,7 @@ describe('Client HTTP', function() {
 
     const input = {error};
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       status(400),
       write(input, 'json'),
@@ -485,7 +504,7 @@ describe('Client HTTP', function() {
   it('should error on non 200 status code', async () => {
     client = new Client({port});
 
-    server = start([
+    server = await start([
       seenDeepEqual(false),
       status(201),
       end()
@@ -518,7 +537,7 @@ describe('Client HTTP', function() {
           path: base
         });
 
-        server = start([
+        server = await start([
           seenDeepEqual(false),
           reqDeepEqual('url', expect),
           end()
