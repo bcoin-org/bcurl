@@ -22,9 +22,9 @@
     "test": "bmocha --reporter spec test/*-test.js"
   },
   "dependencies": {
-    "brq": "~0.1.8",
-    "bsert": "~0.0.10",
-    "bsock": "~0.1.9"
+    "brq": "~0.1.10",
+    "bsert": "~0.0.12",
+    "bsock": "~0.1.10"
   },
   "devDependencies": {
     "bmocha": "^2.1.8",
